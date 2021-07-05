@@ -1,4 +1,4 @@
-# NUS DSS template
+# Backtesting trading strategies
 a template repo for DSS (Data and Social Science) projects
 
 You can modify this README.md to highlight:
