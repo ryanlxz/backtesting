@@ -1,0 +1,13 @@
+# gitignore files tells git which files to ignore
+
+# ignore system files
+.DS_Store
+
+# ignore notebook checkpoints
+notebooks/.ipynb_checkpoints/*
+
+# ignore python cache
+notebooks/__pycache__/*
+
+# ignore swap files
+*.swp
