@@ -1,10 +1,5 @@
 # Backtesting trading strategies
-a template repo for DSS (Data and Social Science) projects
-
-You can modify this README.md to highlight:
-1. Project overview
-2. Methodology
-3. Code examples (including notebooks)
+Simple to implement trading strategies like MACD indicator, moving average and candlestick patterns are backtested on a dataset consisting of the top 100 stocks in terms of market capitalization from the S&P500 index.   
 
 # Project overview
 
@@ -18,11 +13,6 @@ Please refer to /docs
 
 Please refer to /notebooks
 
-# Datasets
-
-Please upload data to /data
-
-Take note of privacy and copyrights.
 
 # Statis resources
 
