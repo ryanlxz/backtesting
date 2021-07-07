@@ -1,10 +1,6 @@
 # Backtesting trading strategies
 Simple to implement trading strategies like MACD indicator, moving average and candlestick patterns are backtested on a dataset consisting of the top 100 stocks in terms of market capitalization from the S&P500 index.   
 
-# Project overview
-
-Tell me something about this project.
-
 # Methodology
 
 Please refer to /docs
