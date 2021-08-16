@@ -7,7 +7,7 @@ There are many trading strategies available online, and this study aims to backt
 Historical daily stock data from Yahoo Finance from 2006-2021. 
 Tested on 2 separate datasets:
 1.	Top 100 stocks in terms of market capitalization in the S&P 500 
-2.	2217 companies in the New York Stock Exchange (NYSE), with a minimum of 1 year of trading history and an average of 11 years of trading history. 
+2.	2211 companies in the New York Stock Exchange (NYSE), with a minimum of 1 year of trading history and an average of 11 years of trading history. 
 
 
 ## Methodology:
