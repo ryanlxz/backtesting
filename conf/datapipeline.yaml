@@ -1,0 +1,4 @@
+URL: 'https://www.advfn.com/nyse/newyorkstockexchange.asp?companies='
+start_date: "2006-06-30"
+end_date: "2010-06-30"
+interval: '1d'
