@@ -11,6 +11,7 @@ def scrape_stock_symbols(cfg:dict):
     'https://randerson112358.medium.com/web-scraping-stock-tickers-using-python-3e5801a52c6d'
     Args:
         cfg (dict): config datapipeline dictionary
+        URL: website to scrape stock tickers from
 
     Returns:
         pd.DataFrame: Pandas dataframe of company names and their tickers 

@@ -18,6 +18,8 @@ List of strategies:
 4. RSI strategy
 
 ### MACD strategy
+The Moving Average Convergence/Divergence (MACD) is a technical indicator which uses the difference between two exponential moving averages to determine the momentum and the direction of the market. The MACD crossover occurs when the MACD line and the signal line intercept, often indicating a change in the momentum/trend of the market. 
+
 MACD line: 12 day EMA – 26 day EMA 
 Signal line: 9 day EMA of MACD line
 MACD histogram: MACD line – signal line
