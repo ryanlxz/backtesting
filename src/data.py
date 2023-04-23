@@ -3,6 +3,8 @@ import pandas as pd
 import cloudscraper
 from bs4 import BeautifulSoup
 import yfinance as yf
+import pathlib
+from os.path import exists
 
 def scrape_stock_symbols(cfg:dict):
     """Scrape stock ticker symbols from the new york stock exchange 
@@ -37,9 +39,30 @@ def scrape_stock_symbols(cfg:dict):
     return ticker_df
 
 def get_stock_data(cfg:dict):
-    ticker_df = scrape_stock_symbols()
-    stock_data = pd.DataFrame()
-    for i in ticker_df['company_ticker']:
-        stock = yf.download(i, start=cfg['start_date'], end=cfg['end_date'], interval=cfg['interval'])
-        stock = stock.dropna().reset_index() 
-        nyse_dict[i] = security_price
+    """Download stock data for the scraped stock tickers 
+
+    Args:
+        cfg (dict): config datapipeline dictionary 
+        start_date: start date of stock data
+        end_date: end date of stock data
+        interval: time interval of stock data e.g 1D, 1H
+        datapath: data path of stock data
+
+    Returns:
+        pd.DataFrame: Pandas dataframe of stock data sorted by their tickers 
+    """
+    datapath = pathlib.Path(cfg["datapath"])
+
+    if exists(datapath):
+        stock_data = pd.read_csv(datapath)
+    else:
+        ticker_df = scrape_stock_symbols(cfg)
+        stock_data = pd.DataFrame()
+        for i in ticker_df['company_ticker']:
+            stock = yf.download(i, start=cfg['start_date'], end=cfg['end_date'], interval=cfg['interval'])
+            stock = stock.dropna().reset_index() 
+            stock['symbol'] = i
+            stock_data = pd.concat([stock_data,stock])
+        stock_data = stock_data.pivot(columns='symbol')
+        stock_data.to_csv(cfg['datapath'])
+    return stock_data
