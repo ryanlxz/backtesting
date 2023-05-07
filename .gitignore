@@ -11,3 +11,6 @@ notebooks/__pycache__/*
 
 # ignore swap files
 *.swp
+
+# ignore data file 
+data/
