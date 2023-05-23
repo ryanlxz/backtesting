@@ -6,6 +6,27 @@ import yfinance as yf
 import pathlib
 from os.path import exists
 
+def load_preprocessed_data(cfg:dict)->pd.DataFrame:
+    """load preprocessed data
+
+    Args:
+        cfg (dict): config dictionary
+
+    Returns:
+        pd.DataFrame: preprocessed dataframe 
+    """
+    datapath = pathlib.Path(cfg['preprocessed_datapath'])
+
+    if exists(datapath):
+        stock_data = pd.read_csv(datapath)
+        stock_data = convert_multiindex(stock_data)
+    else:
+        stock_data = get_stock_data(cfg)
+        stock_data = convert_multiindex(stock_data)
+        stock_data = drop_tickers(stock_data)
+        stock_data.to_csv(datapath)
+    return stock_data
+
 def scrape_stock_symbols(cfg:dict):
     """Scrape stock ticker symbols from the new york stock exchange 
     'https://randerson112358.medium.com/web-scraping-stock-tickers-using-python-3e5801a52c6d'
@@ -68,7 +89,15 @@ def get_stock_data(cfg:dict):
         stock_data.to_csv(cfg['datapath'])
     return stock_data
 
-def convert_multiindex(stock_data):
+def convert_multiindex(stock_data:pd.DataFrame)->pd.DataFrame:
+    """convert dataframe into a multiindex 
+
+    Args:
+        stock_data (pd.DataFrame): raw dataframe
+
+    Returns:
+        pd.DataFrame: multiindex 
+    """
     # check if all tickers are the same for all columns 
     test_df = pd.DataFrame()
     for i in ['^Date','^Open','^High','^Low','^Close','^Adj Close','^Volume']:
@@ -91,8 +120,16 @@ def convert_multiindex(stock_data):
     stock_data = stock_data.iloc[1:].reset_index(drop=True) 
     return stock_data 
 
-def drop_tickers(stock_data):
-    # 252 trading days in a year. If 10 years or more of missing data, drop the ticker
+def drop_tickers(stock_data:pd.DataFrame)->pd.DataFrame:
+    """Drop tickers with more than 10 years of missing data. 
+    252 trading days in a year so drop rows with >= 2520 missing values
+
+    Args:
+        stock_data (pd.DataFrame): dataframe
+
+    Returns:
+        pd.DataFrame: dataframe after dropping tickers with >=10 years of missing values 
+    """
     drop_ticker_list = []
     for i in stock_data['Date'].columns.tolist():
         if stock_data['Date'][i].isnull().sum() >= 2520:
@@ -100,15 +137,3 @@ def drop_tickers(stock_data):
     stock_data = stock_data.drop(drop_ticker_list, axis=1, level = 1)
     return stock_data
 
-def load_preprocessed_data(cfg:dict):
-    datapath = pathlib.Path(cfg["preprocessed_datapath"])
-
-    if exists(datapath):
-        stock_data = pd.read_csv(datapath)
-        stock_data = convert_multiindex(stock_data)
-    else:
-        stock_data = get_stock_data()
-        stock_data = convert_multiindex(stock_data)
-        stock_data = drop_tickers(stock_data)
-        stock_data.to_csv(cfg['datapath'])
-    return stock_data
