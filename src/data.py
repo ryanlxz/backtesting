@@ -27,6 +27,29 @@ def load_preprocessed_data(cfg:dict)->pd.DataFrame:
         stock_data.to_csv(datapath)
     return stock_data
 
+def load_close_data(cfg:dict)->pd.DataFrame:
+    """load Close data
+
+    Args:
+        cfg (dict): config dictionary
+
+    Returns:
+        pd.DataFrame: dataframe with Close price 
+    """
+    datapath = pathlib.Path(cfg['close_datapath'])
+
+    if exists(datapath):
+        df = pd.read_csv(datapath)
+    else:
+        stock_data = load_preprocessed_data(cfg)
+        df = stock_data['Close']
+        df.index = stock_data['Date'].iloc[:,0]
+        df.index = df.index.rename('Date')
+        df.rename(columns=lambda x: str(x) + "_Close", inplace=True)
+        df.to_csv(datapath)
+    return df
+
+
 def scrape_stock_symbols(cfg:dict):
     """Scrape stock ticker symbols from the new york stock exchange 
     'https://randerson112358.medium.com/web-scraping-stock-tickers-using-python-3e5801a52c6d'

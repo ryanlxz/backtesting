@@ -84,3 +84,13 @@ def MACD(stock_data):
         macd_df['winlose'].iloc[i] = winlose
 
     return macd_df[macd_df['position']==1]
+
+class exit():
+    pass
+
+    def rsi():
+        pass
+        
+    def profit():
+        pass
+        # a certain profit has been reached e.g 10% 

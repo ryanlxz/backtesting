@@ -4,3 +4,4 @@ end_date: "2022-12-31"
 interval: '1d'
 raw_datapath: "../data/stock_data.csv"
 preprocessed_datapath: "../data/preprocessed_data.csv"
+close_datapath: "../data/test_close.csv"
