@@ -35,8 +35,8 @@ class MACD:
         Returns:
             pd.Series: index of exit position for each entry position
         """
+        # invert the logic for np.where
         exit_list = []
-        # col_name = f'{ticker_enter.name.split("_")[0]}_Exit_Position'
         entry_idx = ticker_enter[ticker_enter == "enter_long"].index
         for i in entry_idx:
             if (
