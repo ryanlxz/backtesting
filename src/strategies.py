@@ -1,6 +1,7 @@
 import talib
 import numpy as np
 import pandas as pd
+from contextlib import suppress
 
 
 class MACD:
@@ -23,38 +24,65 @@ class MACD:
         positions = positions.reindex(columns=sorted(positions.columns))
         return positions
 
-    def get_exit_position(
-        self, ticker_enter: pd.Series, ticker_exit: pd.Series
-    ) -> pd.Series:
+    def get_exit_position(self, enter: pd.Series, exit: pd.Series) -> pd.Series:
         """get exit positions for each entry position
 
         Args:
-            ticker_enter (pd.Series): entry positions
-            ticker_exit (pd.Series): exit signals
+            enter (pd.Series): entry signal
+            exit (pd.Series): exit signal
 
         Returns:
             pd.Series: index of exit position for each entry position
         """
-        # invert the logic for np.where
         exit_list = []
-        entry_idx = ticker_enter[ticker_enter == "enter_long"].index
+        entry_idx = enter[enter == "enter_long"].index
         for i in entry_idx:
-            if (
-                len(ticker_exit[(ticker_exit.index > i) & (ticker_exit == "exit_long")])
-                > 0
-            ):
+            if len(exit[(exit.index > i) & (exit == "exit_long")]) > 0:
                 # case 1: entry and exit positions are available
-                first_occurrence_index = ticker_exit[
-                    (ticker_exit.index > i) & (ticker_exit == "exit_long")
+                first_occurrence_index = exit[
+                    (exit.index > i) & (exit == "exit_long")
                 ].index[0]
                 exit_list.append(first_occurrence_index)
-            elif len(ticker_exit[(ticker_exit.index > i)]) == 0:
-                # case 2: enter trade on the last date of the dataframe so not possible to exit
-                exit_list.append("exit_na")
             else:
+                # case 2: enter trade on the last date of the dataframe so not possible to exit
                 # case 3: no exit position after entry position. Exit at last available date.
-                exit_list.append(ticker_exit.loc[i:].iloc[-1])
+                exit_list.append("exit_na")
         exit_idx = pd.Series(exit_list)
+
+        # exit_list = pd.Series(
+        #     [
+        #         np.select(
+        #             [
+        #                 len(ticker_exit[(ticker_exit.index > i)]) == 0,
+        #                 (
+        #                     len(
+        #                         ticker_exit[
+        #                             (ticker_exit.index > i)
+        #                             & (ticker_exit == "exit_long")
+        #                         ]
+        #                     )
+        #                     == 0
+        #                 )
+        #                 & (len(ticker_exit[(ticker_exit.index > i)]) > 0),
+        #                 len(
+        #                     ticker_exit[
+        #                         (ticker_exit.index > i) & (ticker_exit == "exit_long")
+        #                     ]
+        #                 )
+        #                 > 0,
+        #             ],
+        #             [
+        #                 "exit_na",
+        #                 ticker_exit.loc[i:].iloc[-1],
+        #                 ticker_exit[
+        #                     (ticker_exit.index > i) & (ticker_exit == "exit_long")
+        #                 ].index[0],
+        #             ],
+        #         )
+        #         for i in entry_idx
+        #     ]
+        # )
+
         return exit_idx
 
     def macd_entry(self, ticker: pd.Series) -> pd.Series:
