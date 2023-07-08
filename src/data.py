@@ -1,12 +1,23 @@
-import string
-import pandas as pd
-import cloudscraper
-from bs4 import BeautifulSoup
-import yfinance as yf
+import json
 import pathlib
-import os
+import string
+import sys
 from os.path import exists
 
+import cloudscraper
+import pandas as pd
+import yfinance as yf
+from bs4 import BeautifulSoup
+
+sys.path.append("../")
+import conf
+
+# CONFIGS information from import conf
+RAW_DATAPATH = conf.backtest_conf["data"]["raw_datapath"]
+START_DATE = conf.backtest_conf["data"]["start_date"]
+END_DATE = conf.backtest_conf["data"]["end_date"]
+INTERVAL = conf.backtest_conf["data"]["interval"]
+WEBSITE_URL = conf.backtest_conf["data"]["URL"]
 
 def load_preprocessed_data(cfg: dict) -> pd.DataFrame:
     """load preprocessed data
@@ -24,7 +35,7 @@ def load_preprocessed_data(cfg: dict) -> pd.DataFrame:
         stock_data = convert_multiindex(stock_data)
     else:
         stock_data = get_stock_data(cfg)
-        stock_data = convert_multiindex(stock_data)
+        # stock_data = convert_multiindex(stock_data)
         stock_data = drop_tickers(stock_data)
         stock_data.to_csv(datapath)
     return stock_data
@@ -53,12 +64,11 @@ def load_close_data(cfg: dict) -> pd.DataFrame:
     return df
 
 
-def scrape_stock_symbols(cfg: dict):
+def scrape_stock_symbols(website_url: str) ->pd.DataFrame:
     """Scrape stock ticker symbols from the new york stock exchange
     'https://randerson112358.medium.com/web-scraping-stock-tickers-using-python-3e5801a52c6d'
     Args:
-        cfg (dict): config datapipeline dictionary
-        URL: website to scrape stock tickers from
+        website_url (str): website to scrape stock tickers from
 
     Returns:
         pd.DataFrame: Pandas dataframe of company names and their tickers
@@ -66,9 +76,9 @@ def scrape_stock_symbols(cfg: dict):
     company_name = []
     company_ticker = []
     for letter in string.ascii_uppercase:
-        URL = cfg["URL"] + letter
+        url = website_url + letter
         scraper = cloudscraper.create_scraper()
-        info = scraper.get(URL).text
+        info = scraper.get(url).text
         soup = BeautifulSoup(info, "html.parser")
         odd_rows = soup.find_all("tr", attrs={"class": "ts0"})
         even_rows = soup.find_all("tr", attrs={"class": "ts1"})
@@ -84,10 +94,13 @@ def scrape_stock_symbols(cfg: dict):
     ticker_df["company_name"] = company_name
     ticker_df["company_ticker"] = company_ticker
     ticker_df = ticker_df[ticker_df["company_name"] != ""]
+    # save tickers into a json file 
+    with open('tickers.json', 'w') as file:
+        json.dump(list(ticker_df['company_ticker']), file)
     return ticker_df
 
 
-def get_stock_data(cfg: dict):
+def get_stock_data(raw_datapath: str, start_date: str, end_date: str, interval: str)->pd.DataFrame:
     """Download stock data for the scraped stock tickers
 
     Args:
@@ -100,25 +113,33 @@ def get_stock_data(cfg: dict):
     Returns:
         pd.DataFrame: Pandas dataframe of stock data sorted by their tickers
     """
-    datapath = pathlib.Path(cfg["raw_datapath"])
+    datapath = pathlib.Path(raw_datapath)
 
     if exists(datapath):
         stock_data = pd.read_csv(datapath)
     else:
-        os.makedirs("../data")
-        ticker_df = scrape_stock_symbols(cfg)
-        stock_data = pd.DataFrame()
-        for i in ticker_df["company_ticker"]:
+        # os.makedirs("../data")
+        # ticker_df = scrape_stock_symbols(cfg)
+        ticker_file = open('tickers.json')
+        ticker_list = json.load(ticker_file)
+        # create dataframe with dates ranging from start to end date
+        date_range = pd.date_range(start=start_date, end=end_date, freq='D')
+        stock_data = pd.DataFrame({'Date': date_range})
+        # download stock data and merge to dataframe 
+        for ticker in ticker_list:
             stock = yf.download(
-                i,
-                start=cfg["start_date"],
-                end=cfg["end_date"],
-                interval=cfg["interval"],
+                ticker,
+                start=start_date,
+                end=end_date,
+                interval=interval,
             )
             stock = stock.dropna().reset_index()
-            stock["symbol"] = i
-            stock_data = pd.concat([stock_data, stock])
-        stock_data = stock_data.pivot(columns="symbol")
+            stock = stock.rename(columns=lambda x: '_'.join((f'{ticker}', x)) if stock.columns.get_loc(x) > 0 else x)
+            stock_data = pd.merge(stock_data, stock, how='outer', on='Date')
+            print(ticker)
+            # stock["symbol"] = i
+            # stock_data = pd.concat([stock_data, stock])
+        # stock_data = stock_data.pivot(columns="symbol")
         stock_data.to_csv(datapath)
     return stock_data
 
@@ -172,3 +193,10 @@ def drop_tickers(stock_data: pd.DataFrame) -> pd.DataFrame:
             drop_ticker_list.append(i)
     stock_data = stock_data.drop(drop_ticker_list, axis=1, level=1)
     return stock_data
+
+def run_data_pipeline():
+    # scrape_stock_symbols(WEBSITE_URL)
+    get_stock_data(RAW_DATAPATH, START_DATE, END_DATE, INTERVAL)
+
+if __name__ == "__main__":
+    run_data_pipeline()

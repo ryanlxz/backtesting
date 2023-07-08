@@ -59,7 +59,7 @@ class GoldenDeathCross:
             np.where(crossover_df["Date"].isin(crossover_death), "death", ""),
         )
         # check if there was any golden or death cross for the ticker
-        if "golden" not in crossover_df["cross"]
-        return crossover_df[["Date", "cross", "long_term_ma"]]
+        #if "golden" not in crossover_df["cross"]
+        return crossover_df[["Date", "cross"]]
 
-logging = get_logger(LOG_DIR, include_debug=True)
+#logging = get_logger(LOG_DIR, include_debug=True)
