@@ -30,6 +30,7 @@ class MACD:
             columns=lambda x: x.replace("_Close", "_Exit"), inplace=True
         )
         positions = pd.concat([entry_position, exit_position], axis=1)
+        # sort columns to prepare for calling the next method get_entry_exit_position
         positions = positions.reindex(columns=sorted(positions.columns))
         positions.set_index(self.stock_data["Date"], inplace=True)
         return positions
@@ -55,6 +56,7 @@ class MACD:
                 ].index[0]
                 long_position.append(("long", i, first_occurrence_index))
             else:
+                # case 2 and case 3
                 # case 2: enter trade on the last date of the dataframe so not possible to exit
                 # case 3: no exit position after entry position. Exit at last available date.
                 long_position.append(("long", i, "exit_na"))
@@ -70,6 +72,7 @@ class MACD:
                 ].index[0]
                 short_position.append(("short", i, first_occurrence_index))
             else:
+                # case 2 and case 3
                 # case 2: enter trade on the last date of the dataframe so not possible to exit
                 # case 3: no exit position after entry position. Exit at last available date.
                 short_position.append(
@@ -182,12 +185,3 @@ class MACD:
     #     macd_df["winlose"].iloc[i] = winlose
 
     # return macd_df[macd_df["position"] == 1]
-
-
-def profit():
-    profit_macd_df = pd.DataFrame(columns=["profit", "win_rate"])
-
-
-def close_exit():
-    # stop loss exit. when close price falls below or exceeds a threshold, generate exit signal
-    pass

@@ -14,58 +14,80 @@ import conf
 
 # CONFIGS information from import conf
 RAW_DATAPATH = conf.backtest_conf["data"]["raw_datapath"]
+PREPROCESSED_DATAPATH = conf.backtest_conf["data"]["preprocessed_datapath"]
 START_DATE = conf.backtest_conf["data"]["start_date"]
 END_DATE = conf.backtest_conf["data"]["end_date"]
 INTERVAL = conf.backtest_conf["data"]["interval"]
 WEBSITE_URL = conf.backtest_conf["data"]["URL"]
 
-def load_preprocessed_data(cfg: dict) -> pd.DataFrame:
-    """load preprocessed data
+# def load_preprocessed_data(cfg: dict) -> pd.DataFrame:
+#     """load preprocessed data
+
+#     Args:
+#         cfg (dict): config dictionary
+
+#     Returns:
+#         pd.DataFrame: preprocessed dataframe
+#     """
+#     datapath = pathlib.Path(cfg["preprocessed_datapath"])
+
+#     if exists(datapath):
+#         stock_data = pd.read_csv(datapath)
+#         stock_data = convert_multiindex(stock_data)
+#     else:
+#         stock_data = get_stock_data(cfg)
+#         # stock_data = convert_multiindex(stock_data)
+#         stock_data = drop_tickers(stock_data)
+#         stock_data.to_csv(datapath)
+#     return stock_data
+
+def preprocess_data(preprocessed_datapath: str, raw_datapath: str):
+    """preprocess raw data by dropping tickers with more than 10 years of missing data.
+    Save preprocessed data. 
 
     Args:
-        cfg (dict): config dictionary
+        preprocessed_datapath (str): _description_
+        raw_datapath (str): _description_
 
     Returns:
-        pd.DataFrame: preprocessed dataframe
+        _type_: _description_
     """
-    datapath = pathlib.Path(cfg["preprocessed_datapath"])
+    raw_df = pd.read_csv(pathlib.Path(raw_datapath),parse_dates=['Date'], index_col='Date')
+    preprocessed_df = drop_tickers(raw_df)
+    preprocessed_df.to_csv(preprocessed_datapath,index=True)
+    return None
 
-    if exists(datapath):
-        stock_data = pd.read_csv(datapath)
-        stock_data = convert_multiindex(stock_data)
-    else:
-        stock_data = get_stock_data(cfg)
-        # stock_data = convert_multiindex(stock_data)
-        stock_data = drop_tickers(stock_data)
-        stock_data.to_csv(datapath)
-    return stock_data
+def load_data(datapath:str,columns:list=None):
+    columns = columns + ['Date']
+    return pd.read_csv(datapath,usecols=lambda col: col.endswith(tuple(columns)))
 
+# def load_close_data(datapath:str) -> pd.DataFrame:
+#     """load Close data
 
-def load_close_data(cfg: dict) -> pd.DataFrame:
-    """load Close data
+#     Args:
+#         cfg (dict): config dictionary
 
-    Args:
-        cfg (dict): config dictionary
+#     Returns:
+#         pd.DataFrame: dataframe with Close price
+#     """
+#     datapath = pathlib.Path(datapath)
 
-    Returns:
-        pd.DataFrame: dataframe with Close price
-    """
-    datapath = pathlib.Path(cfg["close_datapath"])
-
-    if exists(datapath):
-        df = pd.read_csv(datapath)
-    else:
-        stock_data = load_preprocessed_data(cfg)
-        df = stock_data["Close"]
-        df.index = stock_data["Date"].iloc[:, 0]
-        df.index = df.index.rename("Date")
-        df.rename(columns=lambda x: str(x) + "_Close", inplace=True)
-        df.to_csv(datapath)
-    return df
+#     if exists(datapath):
+#         df = pd.read_csv(datapath,index_col=[0])
+#     else:
+#         stock_data = load_preprocessed_data(cfg)
+#         df = stock_data["Close"]
+#         df.index = stock_data["Date"].iloc[:, 0]
+#         df.index = df.index.rename("Date")
+#         df.rename(columns=lambda x: str(x) + "_Close", inplace=True)
+#         df.to_csv(datapath)
+#     return df
 
 
 def scrape_stock_symbols(website_url: str) ->pd.DataFrame:
-    """Scrape stock ticker symbols from the new york stock exchange
+    """Scrape stock ticker symbols from the new york stock exchange from this website.
+    https://www.advfn.com/nyse/newyorkstockexchange.asp?companies= 
+    Then save the tickers in a tickers.json file. 
     'https://randerson112358.medium.com/web-scraping-stock-tickers-using-python-3e5801a52c6d'
     Args:
         website_url (str): website to scrape stock tickers from
@@ -136,45 +158,44 @@ def get_stock_data(raw_datapath: str, start_date: str, end_date: str, interval: 
             stock = stock.dropna().reset_index()
             stock = stock.rename(columns=lambda x: '_'.join((f'{ticker}', x)) if stock.columns.get_loc(x) > 0 else x)
             stock_data = pd.merge(stock_data, stock, how='outer', on='Date')
-            print(ticker)
             # stock["symbol"] = i
             # stock_data = pd.concat([stock_data, stock])
         # stock_data = stock_data.pivot(columns="symbol")
         stock_data.to_csv(datapath)
-    return stock_data
+        return stock_data
 
 
-def convert_multiindex(stock_data: pd.DataFrame) -> pd.DataFrame:
-    """convert dataframe into a multiindex
+# def convert_multiindex(stock_data: pd.DataFrame) -> pd.DataFrame:
+#     """convert dataframe into a multiindex
 
-    Args:
-        stock_data (pd.DataFrame): raw dataframe
+#     Args:
+#         stock_data (pd.DataFrame): raw dataframe
 
-    Returns:
-        pd.DataFrame: multiindex
-    """
-    # check if all tickers are the same for all columns
-    test_df = pd.DataFrame()
-    for i in ["^Date", "^Open", "^High", "^Low", "^Close", "^Adj Close", "^Volume"]:
-        test_df = pd.concat(
-            [test_df, stock_data.filter(regex=i).iloc[0].reset_index(drop=True)], axis=1
-        )
-    test_df["matching"] = test_df.eq(test_df.iloc[:, 0], axis=0).all(1)
-    assert not False in test_df["matching"], "Tickers do not match in all columns"
+#     Returns:
+#         pd.DataFrame: multiindex
+#     """
+#     # check if all tickers are the same for all columns
+#     test_df = pd.DataFrame()
+#     for i in ["^Date", "^Open", "^High", "^Low", "^Close", "^Adj Close", "^Volume"]:
+#         test_df = pd.concat(
+#             [test_df, stock_data.filter(regex=i).iloc[0].reset_index(drop=True)], axis=1
+#         )
+#     test_df["matching"] = test_df.eq(test_df.iloc[:, 0], axis=0).all(1)
+#     assert not False in test_df["matching"], "Tickers do not match in all columns"
 
-    # configure headers
-    stock_data.drop(["Unnamed: 0"], axis=1, inplace=True)
-    header_cols = ["Date", "Open", "High", "Low", "Close", "Adj Close", "Volume"]
-    length = len(stock_data.filter(like="Date").columns.tolist())
-    tickers = stock_data.filter(like="Date").iloc[0].tolist()
-    header_1 = []
-    for i in [length * [i] for i in header_cols]:
-        for j in i:
-            header_1.append(j)
-    header = [header_1, len(header_cols) * tickers]
-    stock_data.columns = header
-    stock_data = stock_data.iloc[1:].reset_index(drop=True)
-    return stock_data
+#     # configure headers
+#     stock_data.drop(["Unnamed: 0"], axis=1, inplace=True)
+#     header_cols = ["Date", "Open", "High", "Low", "Close", "Adj Close", "Volume"]
+#     length = len(stock_data.filter(like="Date").columns.tolist())
+#     tickers = stock_data.filter(like="Date").iloc[0].tolist()
+#     header_1 = []
+#     for i in [length * [i] for i in header_cols]:
+#         for j in i:
+#             header_1.append(j)
+#     header = [header_1, len(header_cols) * tickers]
+#     stock_data.columns = header
+#     stock_data = stock_data.iloc[1:].reset_index(drop=True)
+#     return stock_data
 
 
 def drop_tickers(stock_data: pd.DataFrame) -> pd.DataFrame:
@@ -188,15 +209,20 @@ def drop_tickers(stock_data: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: dataframe after dropping tickers with >=10 years of missing values
     """
     drop_ticker_list = []
-    for i in stock_data["Date"].columns.tolist():
-        if stock_data["Date"][i].isnull().sum() >= 2520:
-            drop_ticker_list.append(i)
-    stock_data = stock_data.drop(drop_ticker_list, axis=1, level=1)
+    # filter for all the Close columns
+    close_columns = stock_data.filter(like='_Close', axis=1).columns.tolist()
+    for column in close_columns:
+        if stock_data[column].isnull().sum() >= 2520:
+            drop_ticker_list.append(column.split('_')[0]+'_')
+    # get all column names that start with the tickers to drop 
+    columns_to_drop = [col for col in stock_data.columns if col.startswith(tuple(drop_ticker_list))]
+    stock_data = stock_data.drop(columns_to_drop, axis=1)
     return stock_data
 
 def run_data_pipeline():
     # scrape_stock_symbols(WEBSITE_URL)
-    get_stock_data(RAW_DATAPATH, START_DATE, END_DATE, INTERVAL)
+    # get_stock_data(RAW_DATAPATH, START_DATE, END_DATE, INTERVAL)
+    preprocess_data(PREPROCESSED_DATAPATH,RAW_DATAPATH)
 
 if __name__ == "__main__":
     run_data_pipeline()
