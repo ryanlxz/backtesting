@@ -58,8 +58,11 @@ def preprocess_data(preprocessed_datapath: str, raw_datapath: str):
     return None
 
 def load_data(datapath:str,columns:list=None):
-    columns = columns + ['Date']
-    return pd.read_csv(datapath,usecols=lambda col: col.endswith(tuple(columns)))
+    if columns == None:
+        return pd.read_csv(datapath)
+    else:
+        columns = columns + ['Date']
+        return pd.read_csv(datapath,usecols=lambda col: col.endswith(tuple(columns)))
 
 # def load_close_data(datapath:str) -> pd.DataFrame:
 #     """load Close data
@@ -135,34 +138,35 @@ def get_stock_data(raw_datapath: str, start_date: str, end_date: str, interval: 
     Returns:
         pd.DataFrame: Pandas dataframe of stock data sorted by their tickers
     """
-    datapath = pathlib.Path(raw_datapath)
 
-    if exists(datapath):
-        stock_data = pd.read_csv(datapath)
-    else:
-        # os.makedirs("../data")
-        # ticker_df = scrape_stock_symbols(cfg)
-        ticker_file = open('tickers.json')
-        ticker_list = json.load(ticker_file)
-        # create dataframe with dates ranging from start to end date
-        date_range = pd.date_range(start=start_date, end=end_date, freq='D')
-        stock_data = pd.DataFrame({'Date': date_range})
-        # download stock data and merge to dataframe 
-        for ticker in ticker_list:
-            stock = yf.download(
-                ticker,
-                start=start_date,
-                end=end_date,
-                interval=interval,
-            )
-            stock = stock.dropna().reset_index()
-            stock = stock.rename(columns=lambda x: '_'.join((f'{ticker}', x)) if stock.columns.get_loc(x) > 0 else x)
-            stock_data = pd.merge(stock_data, stock, how='outer', on='Date')
-            # stock["symbol"] = i
-            # stock_data = pd.concat([stock_data, stock])
-        # stock_data = stock_data.pivot(columns="symbol")
-        stock_data.to_csv(datapath)
-        return stock_data
+    ticker_file = open('tickers.json')
+    ticker_list = json.load(ticker_file)
+    # create dataframe with dates ranging from start to end date
+    # date_range = pd.date_range(start=start_date, end=end_date, freq='D')
+    # stock_data = pd.DataFrame({'Date': date_range})
+
+    stock_list = []
+    # download stock data and merge to dataframe 
+    for ticker in ticker_list:
+        stock = yf.download(
+            ticker,
+            start=start_date,
+            end=end_date,
+            interval=interval,
+        )
+        stock = stock.dropna().reset_index()
+        # rename columns by adding ticker, except for date column which is the first index. e.g ticker_Close
+        stock = stock.rename(columns=lambda x: '_'.join((f'{ticker}', x)) if stock.columns.get_loc(x) > 0 else x)
+        stock_list.append(stock)
+    # merge stock dataframes 
+    stock_data = stock_list[0]
+    for stock_df in stock_list[1:]:
+        stock_data = pd.merge(stock_data, stock_df, how='outer', on='Date')
+        # stock["symbol"] = i
+        # stock_data = pd.concat([stock_data, stock])
+    # stock_data = stock_data.pivot(columns="symbol")
+    stock_data.to_csv(raw_datapath)
+    return stock_data
 
 
 # def convert_multiindex(stock_data: pd.DataFrame) -> pd.DataFrame:
