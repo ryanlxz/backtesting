@@ -1,11 +1,12 @@
 data:
     URL: 'https://www.advfn.com/nyse/newyorkstockexchange.asp?companies='
-start_date: "2002-01-01"
-end_date: "2022-12-31"
-interval: '1d'
-raw_datapath: "../data/stock_data.csv"
-preprocessed_datapath: "../data/preprocessed_data.csv"
-close_datapath: "../data/test_close.csv"
+    start_date: "2002-01-01"
+    end_date: "2022-12-31"
+    interval: '1d'
+    raw_datapath: "../data/v3_stock_data.csv"
+    preprocessed_datapath: "../data/new_preprocessed_data.csv"
+    close_datapath: "../data/test_close.csv"
 long_term_ma: 200
 short_term_ma: 50
 logging_dir: ["logs", "strategies"] 
+uptrend_ma: 100
