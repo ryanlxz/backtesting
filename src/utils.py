@@ -111,3 +111,19 @@ def get_project_root() -> Path:
         Absolute path of project root directory located 2 levels above.
     """
     return Path(__file__).parent.absolute()
+
+def get_project_root() -> str:
+    """Get the project root path. Finds the pyproject.toml file which is located in the kedro project root and returns the project root filepath.
+
+    Raises:
+        RuntimeError: Reaches the root directory and cannot find the pyproject.toml file.
+
+    Returns:
+        str: kedro project root path
+    """
+    current_path = Path.cwd()
+    while current_path != Path("/"):
+        if (current_path / "pyproject.toml").is_file():
+            return current_path
+        current_path = current_path.parent
+    raise RuntimeError("Kedro project root not found.")
