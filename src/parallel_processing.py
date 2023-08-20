@@ -48,10 +48,16 @@ class ParallelProcess(Preprocessing):
         exit_position = dask.compute(*lazy_list)
         
         # add back the ticker columns to the dateframes in exit_position
-        tickers = [col.split('_')[0] for col in prepared_df.iloc[:].columns]
-        for i in range(len(exit_position)):
-            exit_position[i].rename(columns=lambda x: tickers[i] + '_' + x, inplace=True)
-        merged_df = pd.concat(exit_position, axis=1)
+        if self.strategy == 'macd':
+            tickers = [col.split('_')[0] for col in prepared_df.iloc[:].columns]
+            for i in range(len(exit_position)):
+                exit_position[i].rename(columns=lambda x: tickers[i] + '_' + x, inplace=True)
+            merged_df = pd.concat(exit_position, axis=1)
+        elif self.strategy == 'stock_trend':
+            tickers = [col.split('_')[0] for col in prepared_df.iloc[:, 1::2].columns]
+            for i in range(len(exit_position)):
+                exit_position[i].rename(columns=lambda x: tickers[i] + '_' + x, inplace=True)
+                merged_df = pd.concat(exit_position, axis=1)
         return merged_df
     
     def merge_partitions(self, exit_position_list: list) -> pd.DataFrame:

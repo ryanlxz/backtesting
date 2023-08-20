@@ -46,7 +46,12 @@ class Preprocessing:
             partitioned_df_list = [df.iloc[:, i:i+pairs_per_partition*2] for i in range(0, df.shape[1], pairs_per_partition*2)]
         
         elif self.strategy == 'stock_trend':
-            pass
+            # dataset has date column and consecutive column pairs in the form - ticker_low, ticker_close. 'Date' column which is the first column in df, has to be included in each partition.
+            excluded_date_df = df.iloc[:,1:]
+            date_df = df['Date'].to_frame()
+            num_pairs = excluded_date_df.shape[1] // 2    
+            pairs_per_partition = num_pairs // num_partitions
+            partitioned_df_list = [pd.concat((date_df, excluded_date_df.iloc[:, i:i+pairs_per_partition*2]),axis=1) for i in range(0, excluded_date_df.shape[1], pairs_per_partition*2)]
     
         return partitioned_df_list
 
@@ -65,7 +70,6 @@ class Preprocessing:
         elif self.strategy == 'stock_trend':
             # rearrange 'Date' column to be the first column 
             self.prepared_data_df = pd.concat([self.df['Date'], self.df.drop('Date', axis=1)], axis=1)
-            print(self.prepared_data_df)
         self.prepared_data_list  = self.split_dataset(num_partitions,self.prepared_data_df)
         return None
     
@@ -81,6 +85,6 @@ class Preprocessing:
         if self.strategy == 'macd':
             stock_columns = [(df.columns[i], df.columns[i+1]) for i in range(0, len(df.columns), 2)]
         elif self.strategy == 'stock_trend':
-            stock_columns = [['Date', self.prepared_data_df.columns[i], self.prepared_data_df.columns[i+1]]for i in range(1, len(self.prepared_data_df.columns[1:]), 2)]
+            stock_columns = [['Date', df.columns[i], df.columns[i+1]]for i in range(1, len(df.columns[1:]), 2)]
         return stock_columns
 
