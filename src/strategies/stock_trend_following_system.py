@@ -26,10 +26,9 @@ class StockTrend:
             stock_df (pd.DataFrame): stock df containing 3 columns: Date, Close and Low prices.
         """
         # convert date index to datetime 
-        stock_df.index = pd.to_datetime(stock_df.index)
         self.stock_df = stock_df
-        self.close_col = get_column_name(stock_df,'_Close')
-        self.low_col = get_column_name(stock_df,'_Low')
+        self.close_col = get_column_name(stock_df, '_Close')
+        self.low_col = get_column_name(stock_df, '_Low')
 
     def generate_buy_dates(self):
         self.stock_df['100ma'] = talib.SMA(self.stock_df[self.close_col],timeperiod=UPTREND_MA) 
