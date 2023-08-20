@@ -10,3 +10,8 @@ long_term_ma: 200
 short_term_ma: 50
 logging_dir: ["logs", "strategies"] 
 uptrend_ma: 100
+strategy: 'stock_trend'
+preprocessing:
+    num_partitions: 4
+    macd_dest_filepath: "../data/intermediate/macd_positions_2.csv"
+    stocktrend_dest_filepath: "../data/intermediate/stocktrend_positions.csv"
