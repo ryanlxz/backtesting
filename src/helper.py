@@ -37,8 +37,11 @@ class Profit:
         # check if position input is in the correct format
         if position not in ['long','short']:
             print('Position is an incorrect value. It has to be either long or short.')
+        # get entry and exit columns 
         self.entry_column = get_column_name(self.positions_df,'_Entry')
         self.exit_column = get_column_name(self.positions_df,'_Exit')
+        # drop all rows which has no valid exit date and log the number of dropped rows. E.g for macd strategy, exit date column may contain the value 'exit_na' 
+        self.positions_df = self.positions_df.drop(self.positions_df[self.positions_df[self.exit_column] == 'exit_na'].index)
         #merge positions and price df to get the Close price for entry and exit dates
         merged_df = pd.merge(self.positions_df, self.price_df, left_on=self.entry_column, right_on='Date', how='left')
         merged_df = pd.merge(merged_df, self.price_df, left_on=self.exit_column, right_on='Date', suffixes=('_Entry', '_Exit'), how='left')
@@ -57,7 +60,7 @@ class Profit:
         return merged_df
     
     def calculate_long_term_profit(self,profit_df:pd.DataFrame, profit_type:str = 'cumulative',start_year:int=0, end_year:int=9999)->float:
-        """calculate long term profit over the year range. Year range defaults to 1900-2200 which is the entire duration of the dataframe. 
+        """calculate long term profit over the year range. Year range defaults to 0-9999. 
 
         Args:
             profit_df (pd.DataFrame): profit dataframe which is returned from calculate_profit method.

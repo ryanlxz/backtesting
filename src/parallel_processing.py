@@ -49,7 +49,8 @@ class ParallelProcess(Preprocessing):
         
         # add back the ticker columns to the dateframes in exit_position
         if self.strategy == 'macd':
-            tickers = [col.split('_')[0] for col in prepared_df.iloc[:].columns]
+            tickers = [col.split('_')[0] for col in prepared_df.iloc[:, 1::2].columns]
+            # print(tickers)
             for i in range(len(exit_position)):
                 exit_position[i].rename(columns=lambda x: tickers[i] + '_' + x, inplace=True)
             merged_df = pd.concat(exit_position, axis=1)

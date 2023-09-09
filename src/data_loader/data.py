@@ -2,13 +2,16 @@ import json
 import pathlib
 import string
 import sys
-
+import os 
 import cloudscraper
 import pandas as pd
 import yfinance as yf
 from bs4 import BeautifulSoup
+# when running in notebook
+sys.path.append("../")
+# when running script on its own
+# sys.path.append("../../")
 
-sys.path.append("../../")
 import conf
 from conf import constants
 
@@ -242,4 +245,6 @@ def run_data_pipeline():
     preprocess_data(PREPROCESSED_DATAPATH,RAW_DATAPATH)
 
 if __name__ == "__main__":
-    run_data_pipeline()
+    # run_data_pipeline()
+    sys.path.append("../../")
+    print(os.getcwd())
