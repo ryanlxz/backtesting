@@ -13,3 +13,4 @@ preprocessing:
     num_partitions: 10
     macd_dest_filepath: "../data/03_strategy_positions/macd_positions.csv"
     stocktrend_dest_filepath: "../data/03_strategy_positions/stocktrend_positions.csv"
+model: 'lstm'
