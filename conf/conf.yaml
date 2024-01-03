@@ -13,4 +13,11 @@ preprocessing:
     num_partitions: 10
     macd_dest_filepath: "../data/03_strategy_positions/macd_positions.csv"
     stocktrend_dest_filepath: "../data/03_strategy_positions/stocktrend_positions.csv"
+train_split_percentage: 0.8
+val_split_percentage: 0.1 
 model: 'lstm'
+
+# --------------------------------------------------------------------------------------------
+### model_specific_processing
+rolling_mean_period: 3
+backward_fill_period: 3

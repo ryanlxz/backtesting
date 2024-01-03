@@ -2,11 +2,12 @@ import json
 import pathlib
 import string
 import sys
-import os 
+import os
 import cloudscraper
 import pandas as pd
 import yfinance as yf
 from bs4 import BeautifulSoup
+
 # when running in notebook
 sys.path.append("../")
 # when running script on its own
@@ -47,9 +48,10 @@ WEBSITE_URL = constants.raw_data_url
 #         stock_data.to_csv(datapath)
 #     return stock_data
 
+
 def preprocess_data(preprocessed_datapath: str, raw_datapath: str):
     """preprocess raw data by dropping tickers with more than 10 years of missing data.
-    Save preprocessed data. 
+    Save preprocessed data.
 
     Args:
         preprocessed_datapath (str): _description_
@@ -58,17 +60,20 @@ def preprocess_data(preprocessed_datapath: str, raw_datapath: str):
     Returns:
         _type_: _description_
     """
-    raw_df = pd.read_csv(pathlib.Path(raw_datapath),parse_dates=['Date'], index_col='Date')
+    raw_df = pd.read_csv(
+        pathlib.Path(raw_datapath), parse_dates=["Date"], index_col="Date"
+    )
     preprocessed_df = drop_tickers(raw_df)
-    preprocessed_df.to_csv(preprocessed_datapath,index=True)
+    preprocessed_df.to_csv(preprocessed_datapath, index=True)
     return None
 
-def load_data(datapath:str,columns:list=None)-> pd.DataFrame:
-    """load specific columns from the dataset into a pandas dataframe. 
+
+def load_data(datapath: str, columns: list = None) -> pd.DataFrame:
+    """load specific columns from the dataset into a pandas dataframe.
 
     Args:
-        datapath (str): file path of dataset. 
-        columns (list, optional): suffixes of column names in list format. 
+        datapath (str): file path of dataset.
+        columns (list, optional): suffixes of column names in list format.
         E.g ['_Close, '_Low'] to only load the Close and Low prices. Defaults to None.
 
     Returns:
@@ -77,8 +82,9 @@ def load_data(datapath:str,columns:list=None)-> pd.DataFrame:
     if columns == None:
         return pd.read_csv(datapath)
     else:
-        columns = columns + ['Date']
-        return pd.read_csv(datapath,usecols=lambda col: col.endswith(tuple(columns)))
+        columns = columns + ["Date"]
+        return pd.read_csv(datapath, usecols=lambda col: col.endswith(tuple(columns)))
+
 
 # def load_close_data(datapath:str) -> pd.DataFrame:
 #     """load Close data
@@ -103,10 +109,10 @@ def load_data(datapath:str,columns:list=None)-> pd.DataFrame:
 #     return df
 
 
-def scrape_stock_symbols(website_url: str) ->pd.DataFrame:
+def scrape_stock_symbols(website_url: str) -> pd.DataFrame:
     """Scrape stock ticker symbols from the new york stock exchange from this website.
-    https://www.advfn.com/nyse/newyorkstockexchange.asp?companies= 
-    Then save the tickers in a tickers.json file. 
+    https://www.advfn.com/nyse/newyorkstockexchange.asp?companies=
+    Then save the tickers in a tickers.json file.
     'https://randerson112358.medium.com/web-scraping-stock-tickers-using-python-3e5801a52c6d'
     Args:
         website_url (str): website to scrape stock tickers from
@@ -135,13 +141,15 @@ def scrape_stock_symbols(website_url: str) ->pd.DataFrame:
     ticker_df["company_name"] = company_name
     ticker_df["company_ticker"] = company_ticker
     ticker_df = ticker_df[ticker_df["company_name"] != ""]
-    # save tickers into a json file 
-    with open(TICKERS_DATAPATH, 'w') as file:
-        json.dump(list(ticker_df['company_ticker']), file)
+    # save tickers into a json file
+    with open(TICKERS_DATAPATH, "w") as file:
+        json.dump(list(ticker_df["company_ticker"]), file)
     return ticker_df
 
 
-def get_stock_data(raw_datapath: str, start_date: str, end_date: str, interval: str)->pd.DataFrame:
+def get_stock_data(
+    raw_datapath: str, start_date: str, end_date: str, interval: str
+) -> pd.DataFrame:
     """Download stock data for the scraped stock tickers
 
     Args:
@@ -162,7 +170,7 @@ def get_stock_data(raw_datapath: str, start_date: str, end_date: str, interval: 
     # stock_data = pd.DataFrame({'Date': date_range})
 
     stock_list = []
-    # download stock data and merge to dataframe 
+    # download stock data and merge to dataframe
     for ticker in ticker_list:
         stock = yf.download(
             ticker,
@@ -172,12 +180,16 @@ def get_stock_data(raw_datapath: str, start_date: str, end_date: str, interval: 
         )
         stock = stock.dropna().reset_index()
         # rename columns by adding ticker, except for date column which is the first index. e.g ticker_Close
-        stock = stock.rename(columns=lambda x: '_'.join((f'{ticker}', x)) if stock.columns.get_loc(x) > 0 else x)
+        stock = stock.rename(
+            columns=lambda x: "_".join((f"{ticker}", x))
+            if stock.columns.get_loc(x) > 0
+            else x
+        )
         stock_list.append(stock)
-    # merge stock dataframes 
+    # merge stock dataframes
     stock_data = stock_list[0]
     for stock_df in stock_list[1:]:
-        stock_data = pd.merge(stock_data, stock_df, how='outer', on='Date')
+        stock_data = pd.merge(stock_data, stock_df, how="outer", on="Date")
         # stock["symbol"] = i
         # stock_data = pd.concat([stock_data, stock])
     # stock_data = stock_data.pivot(columns="symbol")
@@ -230,19 +242,23 @@ def drop_tickers(stock_data: pd.DataFrame) -> pd.DataFrame:
     """
     drop_ticker_list = []
     # filter for all the Close columns
-    close_columns = stock_data.filter(like='_Close', axis=1).columns.tolist()
+    close_columns = stock_data.filter(like="_Close", axis=1).columns.tolist()
     for column in close_columns:
         if stock_data[column].isnull().sum() >= 2520:
-            drop_ticker_list.append(column.split('_')[0]+'_')
-    # get all column names that start with the tickers to drop 
-    columns_to_drop = [col for col in stock_data.columns if col.startswith(tuple(drop_ticker_list))]
+            drop_ticker_list.append(column.split("_")[0] + "_")
+    # get all column names that start with the tickers to drop
+    columns_to_drop = [
+        col for col in stock_data.columns if col.startswith(tuple(drop_ticker_list))
+    ]
     stock_data = stock_data.drop(columns_to_drop, axis=1)
     return stock_data
+
 
 def run_data_pipeline():
     # scrape_stock_symbols(WEBSITE_URL)
     # get_stock_data(RAW_DATAPATH, START_DATE, END_DATE, INTERVAL)
-    preprocess_data(PREPROCESSED_DATAPATH,RAW_DATAPATH)
+    preprocess_data(PREPROCESSED_DATAPATH, RAW_DATAPATH)
+
 
 if __name__ == "__main__":
     # run_data_pipeline()
