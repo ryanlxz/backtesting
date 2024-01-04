@@ -7,6 +7,9 @@ preprocessed_data_file_path = "data/02_preprocessed/new_preprocessed_data.csv"
 strategy_list = ["macd", "stock_trend"]
 # model checkpoint filepath
 tft_checkpoint_path = "best_tft.ckpt"
+# darts tft model checkpoint filepath
+tft_weights_filepath = "data/04_model_specific_processing"
+#
 # --------------------------------------------------------------------------------------------
 ### model_specific_processing
 scale_artefact_file_path = "data/04_model_specific_processing/artefacts/scaler.pkl"
