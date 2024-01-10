@@ -17,7 +17,10 @@ train_split_percentage: 0.8
 val_split_percentage: 0.1 
 model: 'lstm'
 
-# --------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 ### model_specific_processing
 rolling_mean_period: 3
 backward_fill_period: 3
+# ------------------------------------------------------------------------------
+### database
+required_days: 100 # number of days of data required for trading strategy 

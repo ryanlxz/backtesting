@@ -142,13 +142,13 @@ def scrape_stock_symbols(website_url: str) -> pd.DataFrame:
     ticker_df["company_ticker"] = company_ticker
     ticker_df = ticker_df[ticker_df["company_name"] != ""]
     # save tickers into a json file
-    with open(TICKERS_DATAPATH, "w") as file:
+    with open(TICKERS_DATAPATH, "w") as file:  # overwrites the previous data
         json.dump(list(ticker_df["company_ticker"]), file)
     return ticker_df
 
 
 def get_stock_data(
-    raw_datapath: str, start_date: str, end_date: str, interval: str
+    datapath: str, start_date: str, end_date: str, interval: str
 ) -> pd.DataFrame:
     """Download stock data for the scraped stock tickers
 
@@ -193,7 +193,7 @@ def get_stock_data(
         # stock["symbol"] = i
         # stock_data = pd.concat([stock_data, stock])
     # stock_data = stock_data.pivot(columns="symbol")
-    stock_data.to_csv(raw_datapath)
+    stock_data.to_csv(datapath)
     return stock_data
 
 

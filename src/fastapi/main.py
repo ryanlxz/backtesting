@@ -1,18 +1,32 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from datetime import datetime
 from typing import Union
+from fastapi import APIRouter
+from fastapi import FastAPI
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
+
+fake_db = {}
+router = APIRouter()
+
+
+@router.get("/version")
+def version():
+    return "version_1"
 
 
 class Item(BaseModel):
-    name: str
+    title: str
+    timestamp: datetime
     description: Union[str, None] = None
-    price: float
-    tax: Union[float, None] = None
 
 
 app = FastAPI()
 
 
-@app.post("/items/")
-async def create_item(item: Item):
-    return item
+@app.put("/items/{id}")
+def update_item(id: str, item: Item):
+    json_compatible_item_data = jsonable_encoder(item)
+    fake_db[id] = json_compatible_item_data
+
+
+app.include_router(router)
