@@ -8,7 +8,7 @@ strategy_list = ["macd", "stock_trend"]
 # model checkpoint filepath
 tft_checkpoint_path = "best_tft.ckpt"
 # darts tft model checkpoint filepath
-tft_weights_filepath = "data/04_model_specific_processing"
+tft_weights_filepath = "data/04_model_specific_processing/tft.pkl"
 # ------------------------------------------------------------------------------
 ### model_specific_processing
 scale_artefact_file_path = "data/04_model_specific_processing/artefacts/scaler.pkl"
